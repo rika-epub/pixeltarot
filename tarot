@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pixel Witch Tarot</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #1a001f;
+      color: #ffccee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .prompt {
+      max-width: 500px;
+      margin-bottom: 30px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    #shuffleBtn {
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ff66aa;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .deck {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .card {
+      width: 120px;
+      height: 180px;
+      background-image: url('https://i.ibb.co/YFmbMK9K/cover.png'); /* Replace with your pixel card back */
+      background-size: cover;
+      background-position: center;
+      border: 3px solid #ffccee;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      image-rendering: pixelated;
+    }
+
+    .card.selected {
+      transform: scale(1.05);
+      border-color: #ff66aa;
+    }
+
+    #reading {
+      margin-top: 40px;
+      font-size: 16px;
+      max-width: 600px;
+      display: none;
+    }
+
+    #drawAgain {
+      margin-top: 20px;
+      padding: 8px 16px;
+      background-color: #ffccee;
+      color: #1a001f;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌙 Pixel Witch Tarot 🌙</h1>
+  <div class="prompt">
+    Take a deep breath. Greet the deck.  
+    In silence, ask your question.  
+    When you're ready, shuffle the cards and choose three.
+  </div>
+
+  <button id="shuffleBtn">🔀 Shuffle Cards</button>
+
+  <div class="deck">
+    <div class="row" id="row1"></div>
+    <div class="row" id="row2"></div>
+  </div>
+
+  <div id="reading"></div>
+
+  <script>
+    const cardImages = [
+      {
+        name: "The Moon",
+        image: "https://i.ibb.co/V0jQMKWF/themoon.png",
+        message: "You may be in a state of emotional fog or uncertainty right now. Not everything is what it seems. Trust your intuition to guide you through the unknown."
+      },
+      {
+        name: "The Sun",
+        image: "https://i.ibb.co/xSVGWPV2/Chat-GPT-Image-Apr-12-2025-11-07-43-AM.png",
+        message: "You are moving toward joy and clarity. This is a time of success, positivity, and light. Let yourself shine."
+      },
+      {
+        name: "Death",
+        image: "https://i.ibb.co/GfVGF40F/death.png",
+        message: "An ending is at hand. While this may feel painful, it’s a necessary part of transformation. Let go to make space for new growth."
+      },
+      {
+        name: "The Hanged One",
+        image: "https://i.ibb.co/PdXj7hB/Chat-GPT-Image-Apr-12-2025-11-39-58-AM.png",
+        message: "You’re being asked to pause and see things from a different angle. Surrender to the moment instead of rushing forward."
+      },
+      {
+        name: "The Fool",
+        image: "https://i.ibb.co/LXbH5GpT/the-fool.png",
+        message: "You're on the edge of a new beginning. Be open, curious, and unafraid to take that leap—even if you don’t know where it will lead."
+      },
+      {
+        name: "The Magician",
+        image: "https://i.ibb.co/gF9DqfzF/magician.png",
+        message: "You have the tools and the power to shape your reality. What will you create? Focus your energy and act with intention."
+      },
+      {
+        name: "The High Priestess",
+        image: "https://i.ibb.co/5WMS53sq/highpriestess.png",
+        message: "Answers lie within. This is a time for stillness, reflection, and listening to your deeper wisdom."
+      },
+      {
+        name: "The Empress",
+        image: "https://i.ibb.co/3yBwGQbq/empress.png",
+        message: "Abundance, creativity, and nurturing energy surround you. Let yourself receive and grow. You are safe to bloom."
+      },
+      {
+        name: "The Chariot",
+        image: "https://i.ibb.co/5x5wSZh7/chariot.png",
+        message: "You are moving forward with strength and purpose. Stay focused and claim your power—you’re on the right path."
+      },
+      {
+        name: "Justice",
+        image: "https://i.ibb.co/gbMBTh07/justice.png",
+        message: "Clarity and fairness will prevail. Be honest—with yourself and others—and trust that balance is being restored."
+      }
+    ];
+
+    const readingEl = document.getElementById('reading');
+    let shuffledDeck = [];
+    let selectedCards = [];
+
+    function shuffleCards() {
+      selectedCards = [];
+      readingEl.style.display = "none";
+      readingEl.innerHTML = "";
+
+      document.getElementById("row1").innerHTML = "";
+      document.getElementById("row2").innerHTML = "";
+
+      shuffledDeck = [...cardImages].sort(() => Math.random() - 0.5);
+
+      shuffledDeck.slice(0, 5).forEach((card, index) => {
+        const cardEl = createCardElement(card, index);
+        document.getElementById("row1").appendChild(cardEl);
+      });
+
+      shuffledDeck.slice(5, 10).forEach((card, index) => {
+        const cardEl = createCardElement(card, index + 5);
+        document.getElementById("row2").appendChild(cardEl);
+      });
+    }
+
+    function createCardElement(card, index) {
+      const cardEl = document.createElement('div');
+      cardEl.classList.add('card');
+      cardEl.dataset.index = index;
+      cardEl.addEventListener('click', () => selectCard(cardEl, card));
+      return cardEl;
+    }
+
+    function selectCard(cardEl, cardData) {
+      if (selectedCards.length >= 3 || cardEl.classList.contains('selected')) return;
+
+      cardEl.classList.add('selected');
+      cardEl.style.backgroundImage = `url('${cardData.image}')`;
+
+      selectedCards.push(cardData);
+
+      if (selectedCards.length === 3) {
+        showReading();
+      }
+    }
+
+    function showReading() {
+      const pullLabels = [
+        "1. Where You Are Now",
+        "2. What You're Afraid Of",
+        "3. How Things Will Turn Out"
+      ];
+
+      readingEl.style.display = 'block';
+      readingEl.innerHTML = `<h2>🔮 Your 3-Card Reading</h2>`;
+
+      selectedCards.forEach((card, index) => {
+        readingEl.innerHTML += `
+          <div style="margin-bottom: 20px;">
+            <strong>${pullLabels[index]}</strong><br>
+            <em>${card.name}</em>: ${card.message}
+          </div>
+        `;
+      });
+
+      readingEl.innerHTML += `<button id="drawAgain">🔁 Draw Again</button>`;
+      document.getElementById("drawAgain").addEventListener("click", shuffleCards);
+    }
+
+    document.getElementById('shuffleBtn').addEventListener('click', shuffleCards);
+  </script>
+
+</body>
+</html>
